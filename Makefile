@@ -74,7 +74,7 @@ LDFLAGS_F0  = $(MCU_F0) -specs=nano.specs -specs=nosys.specs
 LDFLAGS_F0 += -T$(LDSCRIPT_F0) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET_F0).map,--cref -Wl,--gc-sections
 
 # default action: build all
-all: clean \
+all: submodule clean \
 $(BUILD_DIR)/$(TARGET_F0).elf $(BUILD_DIR)/$(TARGET_F0).hex $(BUILD_DIR)/$(TARGET_F0).bin
 	
 
@@ -123,10 +123,9 @@ flash:
 util:
 	st-util
 
-update:
-	git submodule update --remote mculib3
+submodule:
+	git submodule update --init
 	cd mculib3/ && git checkout develop
-	git submodule update --remote LoRaMac-node
 	cd LoRaMac-node/ && git checkout develop
 
 test_:
