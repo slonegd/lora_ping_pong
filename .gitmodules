@@ -1,0 +1,6 @@
+[submodule "mculib3"]
+	path = mculib3
+	url = https://github.com/slonegd/mculib3.git
+[submodule "LoRaMac-node"]
+	path = LoRaMac-node
+	url = https://github.com/Lora-net/LoRaMac-node.git
