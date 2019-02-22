@@ -1,0 +1,30 @@
+{
+   // Используйте IntelliSense, чтобы узнать о возможных атрибутах.
+   // Наведите указатель мыши, чтобы просмотреть описания существующих атрибутов.
+   // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
+   "version": "0.2.0",
+   "configurations": [
+      { 
+			"name": "f7_discovery",
+			"type": "cppdbg",
+			"request": "launch",
+         "miDebuggerPath": "arm-none-eabi-gdb",
+         "program": "${workspaceRoot}/build/main.elf",
+			"miDebuggerServerAddress": "localhost:4242",
+			"MIMode": "gdb",
+			"cwd": "${workspaceRoot}"
+      },
+
+{
+        "type": "cortex-debug",
+        "request": "launch",
+        "servertype": "stutil",
+        "cwd": "${workspaceRoot}",
+        "executable": "${workspaceRoot}/build/main.elf",
+        "name": "Debug (ST-Util)",
+        "svdFile": "${workspaceRoot}/STM32L1_svd/STM32L151.svd",
+        // "device": "STM32F429",
+        "v1": false
+      },
+   ]
+}

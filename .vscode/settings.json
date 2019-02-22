@@ -2,6 +2,8 @@
    "files.associations": {
       "stm32l1xx.h": "c",
       "stm32l1xx_hal.h": "c",
-      "delay.h": "c"
+      "delay.h": "c",
+      "string_view": "cpp",
+      "secure-element.h": "c"
    }
 }

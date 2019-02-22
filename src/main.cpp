@@ -1,33 +1,18 @@
-/*!
- * \file      main.c
- *
- * \brief     Ping-Pong implementation
- *
- * \copyright Revised BSD License, see section \ref LICENSE.
- *
- * \code
- *                ______                              _
- *               / _____)             _              | |
- *              ( (____  _____ ____ _| |_ _____  ____| |__
- *               \____ \| ___ |    (_   _) ___ |/ ___)  _ \
- *               _____) ) ____| | | || |_| ____( (___| | | |
- *              (______/|_____)_|_|_| \__)_____)\____)_| |_|
- *              (C)2013-2017 Semtech
- *
- * \endcode
- *
- * \author    Miguel Luis ( Semtech )
- *
- * \author    Gregory Cristian ( Semtech )
- */
+
+// #include "lmn_radio.h"
+
+// #include <string.h>
+// // #include <string_view>
+
 #include <string.h>
 extern "C" {
-   #include "board.h"
-   #include "gpio.h"
-   #include "delay.h"
-   #include "timer.h"
-   #include "radio.h"
+#include "board.h"
+#include "gpio.h"
+#include "delay.h"
+#include "timer.h"
+#include "radio.h"
 }
+
 
 
 #if defined( REGION_AS923 )
@@ -133,6 +118,8 @@ typedef enum
 
 const uint8_t PingMsg[] = "PING";
 const uint8_t PongMsg[] = "PONG";
+// const std::string_view PingMsg = "PING";
+// const std::string_view PongMsg = "PONG";
 
 uint16_t BufferSize = BUFFER_SIZE;
 uint8_t Buffer[BUFFER_SIZE];
@@ -187,8 +174,9 @@ int main( void )
     uint8_t i;
 
     // Target board initialization
+   //  auto radio = lmn::Radio (SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK);
     BoardInitMcu( );
-    BoardInitPeriph( );
+    BoardInitPeriph( ); // empty for 152
 
     // Radio initialization
     RadioEvents.TxDone = OnTxDone;
@@ -258,6 +246,7 @@ int main( void )
                         DelayMs( 1 );
                         Radio.Send( Buffer, BufferSize );
                     }
+                  //   else if( strncmp( ( const char* )Buffer, ( const char* )PingMsg, 4 ) == 0 )
                     else if( strncmp( ( const char* )Buffer, ( const char* )PingMsg, 4 ) == 0 )
                     { // A master already exists then become a slave
                         isMaster = false;
@@ -275,6 +264,7 @@ int main( void )
             {
                 if( BufferSize > 0 )
                 {
+                  //   if( strncmp( ( const char* )Buffer, ( const char* )PingMsg, 4 ) == 0 )
                     if( strncmp( ( const char* )Buffer, ( const char* )PingMsg, 4 ) == 0 )
                     {
                         // Indicates on a LED that the received frame is a PING
