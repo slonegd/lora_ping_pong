@@ -1,6 +1,6 @@
 TARGET = main
 DEBUG = 1
-OPT = -O2
+OPT = -Os
 CPPSTD =-std=c++17
 BUILD_DIR = build
 
@@ -15,8 +15,8 @@ LORA_DEFINES += -DUSE_HAL_DRIVER
 ######################################
 # source
 ######################################
-CPP_SOURCES = src/main.cpp
-# CPP_SOURCES = src/lmn_radio.cpp
+CPP_SOURCES += src/main.cpp
+# LORA_SOURCES += src/lmn_radio.c
 
 ASM_SOURCES = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/startup_stm32l152xe.s
 LDSCRIPT = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/stm32l152xe_flash.ld
@@ -30,58 +30,6 @@ INCLUDES += -Isrc
 # C_INCLUDES += -Imculib3/src/periph
 # C_INCLUDES += -Imculib3/src/bits
 
-# LORA_SOURCES += LoRaMac-node/src/radio/sx1276/sx1276.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/mag3110.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/gpio-ioe.c
-# LORA_SOURCES += LoRaMac-node/src/system/adc.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/mma8451.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/board.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/delay-board.c
-# LORA_SOURCES += LoRaMac-node/src/system/delay.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/eeprom-board.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/mpl3115.c
-# LORA_SOURCES += LoRaMac-node/src/system/eeprom.c
-# LORA_SOURCES += LoRaMac-node/src/system/fifo.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/gpio-board.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/lpm-board.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/rtc-board.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/spi-board.c
-# LORA_SOURCES += LoRaMac-node/src/system/gpio.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/pam7q.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/soft-se/aes.c
-# LORA_SOURCES += LoRaMac-node/src/system/gps.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/uart-board.c
-# LORA_SOURCES += LoRaMac-node/src/system/i2c.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/utilities.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/sysIrqHandlers.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/soft-se/cmac.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/soft-se/soft-se.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/cmsis/system_stm32l1xx.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_adc.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_adc_ex.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/sx1509.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_cortex.c
-# LORA_SOURCES += LoRaMac-node/src/system/systime.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/sx9500.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_dma.c
-# LORA_SOURCES += LoRaMac-node/src/system/timer.c
-# LORA_SOURCES += LoRaMac-node/src/system/uart.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_flash.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_gpio.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_flash_ex.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_i2c.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_pwr.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rcc.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_pwr_ex.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rcc_ex.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rtc.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rtc_ex.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_spi.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_spi_ex.c
-# LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_uart.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/sx1276mb1las-board.c
-
 
 LORA_SOURCES += LoRaMac-node/src/radio/sx1276/sx1276.c
 LORA_SOURCES += LoRaMac-node/src/system/gpio.c
@@ -92,7 +40,7 @@ LORA_SOURCES += LoRaMac-node/src/system/uart.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/utilities.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/sx1276mb1las-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/cmsis/system_stm32l1xx.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/board.c
+# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/spi-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/gpio-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/delay-board.c
@@ -127,6 +75,8 @@ LORA_INCLUDES += -ILoRaMac-node/src/boards/NucleoL152/cmsis
 LORA_INCLUDES += -ILoRaMac-node/src/boards/NucleoL152
 LORA_INCLUDES += -ILoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Inc
 LORA_INCLUDES += -ILoRaMac-node/src/mac
+
+# LORA_INCLUDES += -Isrc
 
 
 #######################################

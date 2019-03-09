@@ -5,13 +5,8 @@
 // // #include <string_view>
 
 #include <string.h>
-extern "C" {
-#include "board.h"
-#include "gpio.h"
-#include "delay.h"
-#include "timer.h"
-#include "radio.h"
-}
+
+#include "lmn_radio.h"
 
 
 
@@ -174,9 +169,14 @@ int main( void )
     uint8_t i;
 
     // Target board initialization
-   //  auto radio = lmn::Radio (SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK);
-    BoardInitMcu( );
-    BoardInitPeriph( ); // empty for 152
+    auto radio = lmn::Radio (
+        lmn::SPI  {SPI_1},
+        lmn::MOSI {PA_7},
+        lmn::MISO {PA_6},
+        lmn::CLK  {PA_5}
+    );
+    // BoardInitMcu( );
+    // BoardInitPeriph( ); // empty for 152
 
     // Radio initialization
     RadioEvents.TxDone = OnTxDone;
