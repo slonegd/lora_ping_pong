@@ -24,17 +24,6 @@
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 
-
-typedef enum
-{
-    LOWPOWER,
-    RX,
-    RX_TIMEOUT,
-    RX_ERROR,
-    TX,
-    TX_TIMEOUT,
-}States_t;
-
 #define RX_TIMEOUT_VALUE                            1000
 #define BUFFER_SIZE                                 64 // Define the payload size here
 
@@ -46,7 +35,7 @@ const uint8_t PongMsg[] = "PONG";
 uint16_t BufferSize = BUFFER_SIZE;
 uint8_t Buffer[BUFFER_SIZE];
 
-States_t State = LOWPOWER;
+// states_t state = LOWPOWER;
 
 int8_t RssiValue = 0;
 int8_t SnrValue = 0;
@@ -68,7 +57,15 @@ extern Gpio_t Led2;
 int main( void )
 {
     bool isMaster = true;
-    uint8_t i;
+
+    enum State {
+        LOWPOWER,
+        RX,
+        RX_TIMEOUT,
+        RX_ERROR,
+        TX,
+        TX_TIMEOUT,
+    } state {LOWPOWER};
 
     // Target board initialization
     auto radio = lmn::Radio (
@@ -78,7 +75,7 @@ int main( void )
         , lmn::CLK  {PA_5}
         , lmn::TX_done_callback {[&]{ 
             Radio.Sleep( );
-            State = TX;
+            state = TX;
         }}
         , lmn::RX_done_callback {[&](uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr){
             Radio.Sleep( );
@@ -86,19 +83,19 @@ int main( void )
             memcpy( Buffer, payload, BufferSize );
             RssiValue = rssi;
             SnrValue = snr;
-            State = RX;
+            state = RX;
         }}
         , lmn::TX_timeout_callback {[&]{
             Radio.Sleep( );
-            State = TX_TIMEOUT;
+            state = TX_TIMEOUT;
         }}
         , lmn::RX_timeout_callback {[&]{
             Radio.Sleep( );
-            State = RX_TIMEOUT;
+            state = RX_TIMEOUT;
         }}
         , lmn::RX_error_callback {[&]{
             Radio.Sleep( );
-            State = RX_ERROR;
+            state = RX_ERROR;
         }}
         , lmn::Frequency {lmn::Region_frequency::RU864}
     );
@@ -125,7 +122,7 @@ int main( void )
 
     while( 1 )
     {
-        switch( State )
+        switch( state )
         {
         case RX:
             if( isMaster == true )
@@ -143,7 +140,7 @@ int main( void )
                         Buffer[2] = 'N';
                         Buffer[3] = 'G';
                         // We fill the buffer with numbers for the payload
-                        for( i = 4; i < BufferSize; i++ )
+                        for( auto i = 4; i < BufferSize; i++ )
                         {
                             Buffer[i] = i - 4;
                         }
@@ -180,7 +177,7 @@ int main( void )
                         Buffer[2] = 'N';
                         Buffer[3] = 'G';
                         // We fill the buffer with numbers for the payload
-                        for( i = 4; i < BufferSize; i++ )
+                        for( auto i = 4; i < BufferSize; i++ )
                         {
                             Buffer[i] = i - 4;
                         }
@@ -194,14 +191,14 @@ int main( void )
                     }
                 }
             }
-            State = LOWPOWER;
+            state = LOWPOWER;
             break;
         case TX:
             // Indicates on a LED that we have sent a PING [Master]
             // Indicates on a LED that we have sent a PONG [Slave]
             GpioToggle( &Led2 );
             Radio.Rx( RX_TIMEOUT_VALUE );
-            State = LOWPOWER;
+            state = LOWPOWER;
             break;
         case RX_TIMEOUT:
         case RX_ERROR:
@@ -212,7 +209,7 @@ int main( void )
                 Buffer[1] = 'I';
                 Buffer[2] = 'N';
                 Buffer[3] = 'G';
-                for( i = 4; i < BufferSize; i++ )
+                for( auto i = 4; i < BufferSize; i++ )
                 {
                     Buffer[i] = i - 4;
                 }
@@ -223,11 +220,11 @@ int main( void )
             {
                 Radio.Rx( RX_TIMEOUT_VALUE );
             }
-            State = LOWPOWER;
+            state = LOWPOWER;
             break;
         case TX_TIMEOUT:
             Radio.Rx( RX_TIMEOUT_VALUE );
-            State = LOWPOWER;
+            state = LOWPOWER;
             break;
         case LOWPOWER:
         default:
