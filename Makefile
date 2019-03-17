@@ -26,7 +26,7 @@ INCLUDES += -Isrc
 # C_INCLUDES += -I.
 # C_INCLUDES += -I$(CMSIS_PATH)
 # C_INCLUDES += -I$(CMSIS_PATH)/CMSIS
-# C_INCLUDES += -Imculib3/src
+# INCLUDES += -Imculib3/src
 # C_INCLUDES += -Imculib3/src/periph
 # C_INCLUDES += -Imculib3/src/bits
 
@@ -101,10 +101,10 @@ MCU = -mcpu=cortex-m3 -mthumb
 
 # compile gcc flags
 CFLAGS  = $(MCU) $(OPT)
-CFLAGS += -Wall -fdata-sections -ffunction-sections -fno-exceptions -fno-strict-volatile-bitfields
+CFLAGS += -Wall -fdata-sections -ffunction-sections -fno-exceptions -fno-strict-volatile-bitfields -fno-threadsafe-statics
 CFLAGS += -g -gdwarf-2
 
-CPP_FLAGS += -Wno-register -fno-rtti $(CPPSTD)
+CPP_FLAGS += $(CFLAGS) -Wno-register -fno-rtti $(CPPSTD) 
 
 # Generate dependency information
 CFLAGS    += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
@@ -119,7 +119,7 @@ LIBS = -lc -lm -lnosys
 LDFLAGS  = $(MCU) -specs=nano.specs -specs=nosys.specs
 LDFLAGS += -T$(LDSCRIPT) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
-FLAGS_ = -Og -g -mthumb -g2 -fno-builtin -mcpu=cortex-m3 -Wall -Wextra -pedantic -Wno-unused-parameter -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize
+FLAGS_ = $(CPP_FLAGS) -Og -g -mthumb -g2 -fno-builtin -mcpu=cortex-m3 -Wall -Wextra -pedantic -Wno-unused-parameter -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize
 LINKER_FL = -lm -Wl,--gc-sections --specs=nano.specs --specs=nosys.specs -mthumb -g2 -mcpu=cortex-m3 -mabi=aapcs -T${LDSCRIPT} -Wl,-Map=${TARGET}.map
 
 
@@ -183,7 +183,7 @@ util:
 
 submodule:
 	git submodule update --init
-	cd mculib3/ && git checkout develop
+	cd mculib3/ && git fetch origin && git checkout dvk
 	cd LoRaMac-node/ && git checkout develop
 
 print-%  : ; @echo $* = $($*)

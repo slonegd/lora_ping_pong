@@ -1,5 +1,9 @@
 #pragma once
 
+// c++
+#include "../mculib3/src/function.h"
+// #include <functional>
+
 extern "C" {
 // from board
 #include "stm32l1xx.h"
@@ -30,6 +34,8 @@ extern "C" {
 #include "delay.h"
 #include "timer.h"
 #include "radio.h"
+
+
 
 
 
@@ -429,6 +435,9 @@ void assert_failed( uint8_t* file, uint32_t line )
     }
 }
 #endif
+
+// с++
+void set_callbacks();
 } // extern "C" {
 
 
@@ -459,6 +468,30 @@ struct CLK {
     PinNames value;
     explicit CLK (PinNames value) : value{value} {}
 };
+template<class...Args>
+using Callback = Function<void(Args...)>;
+struct TX_done_callback {
+    Callback<> value;
+    explicit TX_done_callback (Callback<> value) : value{value} {}
+};
+struct RX_done_callback {
+    using F = Callback<uint8_t*,uint16_t,int16_t,int8_t>;
+    F value;
+    explicit RX_done_callback (F value) : value{value} {}
+};
+struct TX_timeout_callback {
+    Callback<> value;
+    explicit TX_timeout_callback (Callback<> value) : value{value} {}
+};
+struct RX_timeout_callback {
+    Callback<> value;
+    explicit RX_timeout_callback (Callback<> value) : value{value} {}
+};
+struct RX_error_callback {
+    Callback<> value;
+    explicit RX_error_callback (Callback<> value) : value{value} {}
+};
+
 
 
 struct Radio {
@@ -466,15 +499,36 @@ struct Radio {
     const PinNames mosi;
     const PinNames miso;
     const PinNames clk;
+    Radio_s radio {::Radio};
+    Callback<> tx_done_callback;
+    RX_done_callback::F rx_done_callback;
+    Callback<> tx_timeout_callback;
+    Callback<> rx_timeout_callback;
+    Callback<> rx_error_callback;
 
-    Radio (SPI spi, MOSI mosi, MISO miso, CLK clk)
-        : spi  {spi.value}
-        , mosi {mosi.value}
-        , miso {miso.value}
-        , clk  {clk.value}
+    Radio (
+          SPI spi
+        , MOSI mosi
+        , MISO miso
+        , CLK clk
+        , TX_done_callback    tx_done_callback
+        , RX_done_callback    rx_done_callback
+        , TX_timeout_callback tx_timeout_callback
+        , RX_timeout_callback rx_timeout_callback
+        , RX_error_callback   rx_error_callback
+    ) : spi  {spi.value}
+      , mosi {mosi.value}
+      , miso {miso.value}
+      , clk  {clk.value}
+      , tx_done_callback    {tx_done_callback.value}
+      , rx_done_callback    {rx_done_callback.value}
+      , tx_timeout_callback {tx_timeout_callback.value}
+      , rx_timeout_callback {rx_timeout_callback.value}
+      , rx_error_callback   {tx_timeout_callback.value}
     {
         c_wrapper.radio = this;
         board_init();
+        set_callbacks();
     }
 
     void board_init() // BoardInitMcu( );
@@ -532,5 +586,23 @@ struct Radio {
 
 
 extern "C" {
-void BoardInitMcu( void ) { lmn::c_wrapper.radio->board_init(); }
+void BoardInitMcu() { lmn::c_wrapper.radio->board_init(); }
+void OnTxDone_() { lmn::c_wrapper.radio->tx_done_callback(); }
+void OnRxDone_( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ) {
+    lmn::c_wrapper.radio->rx_done_callback(payload,size,rssi,snr);
 }
+void OnTxTimeout_() { lmn::c_wrapper.radio->tx_timeout_callback(); }
+void OnRxTimeout_() { lmn::c_wrapper.radio->rx_timeout_callback(); }
+void OnRxError_() { lmn::c_wrapper.radio->rx_error_callback(); }
+RadioEvents_t RadioEvents;
+void set_callbacks()
+{
+    RadioEvents.TxDone = OnTxDone_;
+    RadioEvents.RxDone = OnRxDone_;
+    RadioEvents.TxTimeout = OnTxTimeout_;
+    RadioEvents.RxTimeout = OnRxTimeout_;
+    RadioEvents.RxError = OnRxError_;
+
+    Radio.Init( &RadioEvents );
+}
+} // extern "C" {

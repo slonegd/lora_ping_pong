@@ -127,38 +127,13 @@ int8_t SnrValue = 0;
 /*!
  * Radio events function pointer
  */
-static RadioEvents_t RadioEvents;
+// static RadioEvents_t RadioEvents;
 
 /*!
  * LED GPIO pins objects
  */
 extern Gpio_t Led1;
 extern Gpio_t Led2;
-
-/*!
- * \brief Function to be executed on Radio Tx Done event
- */
-void OnTxDone( void );
-
-/*!
- * \brief Function to be executed on Radio Rx Done event
- */
-void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
-
-/*!
- * \brief Function executed on Radio Tx Timeout event
- */
-void OnTxTimeout( void );
-
-/*!
- * \brief Function executed on Radio Rx Timeout event
- */
-void OnRxTimeout( void );
-
-/*!
- * \brief Function executed on Radio Rx Error event
- */
-void OnRxError( void );
 
 /**
  * Main application entry point.
@@ -170,22 +145,40 @@ int main( void )
 
     // Target board initialization
     auto radio = lmn::Radio (
-        lmn::SPI  {SPI_1},
-        lmn::MOSI {PA_7},
-        lmn::MISO {PA_6},
-        lmn::CLK  {PA_5}
+          lmn::SPI  {SPI_1}
+        , lmn::MOSI {PA_7}
+        , lmn::MISO {PA_6}
+        , lmn::CLK  {PA_5}
+        , lmn::TX_done_callback {[&]{ 
+            Radio.Sleep( );
+            State = TX;
+        }}
+        , lmn::RX_done_callback {[&](uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr){
+            Radio.Sleep( );
+            BufferSize = size;
+            memcpy( Buffer, payload, BufferSize );
+            RssiValue = rssi;
+            SnrValue = snr;
+            State = RX;
+        }}
+        , lmn::TX_timeout_callback {[&]{
+            Radio.Sleep( );
+            State = TX_TIMEOUT;
+        }}
+        , lmn::RX_timeout_callback {[&]{
+            Radio.Sleep( );
+            State = RX_TIMEOUT;
+        }}
+        , lmn::RX_error_callback {[&]{
+            Radio.Sleep( );
+            State = RX_ERROR;
+        }}
     );
-    // BoardInitMcu( );
+    // BoardInitMcu( ); // in ctor now
     // BoardInitPeriph( ); // empty for 152
 
     // Radio initialization
-    RadioEvents.TxDone = OnTxDone;
-    RadioEvents.RxDone = OnRxDone;
-    RadioEvents.TxTimeout = OnTxTimeout;
-    RadioEvents.RxTimeout = OnRxTimeout;
-    RadioEvents.RxError = OnRxError;
-
-    Radio.Init( &RadioEvents );
+    // callbacks in ctor now
 
     Radio.SetChannel( RF_FREQUENCY );
 
@@ -340,36 +333,3 @@ int main( void )
     }
 }
 
-void OnTxDone( void )
-{
-    Radio.Sleep( );
-    State = TX;
-}
-
-void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
-{
-    Radio.Sleep( );
-    BufferSize = size;
-    memcpy( Buffer, payload, BufferSize );
-    RssiValue = rssi;
-    SnrValue = snr;
-    State = RX;
-}
-
-void OnTxTimeout( void )
-{
-    Radio.Sleep( );
-    State = TX_TIMEOUT;
-}
-
-void OnRxTimeout( void )
-{
-    Radio.Sleep( );
-    State = RX_TIMEOUT;
-}
-
-void OnRxError( void )
-{
-    Radio.Sleep( );
-    State = RX_ERROR;
-}
