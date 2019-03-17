@@ -5,6 +5,9 @@
 #include <cstdint> // move to literals
 #include "../mculib3/src/literals.h"
 
+constexpr uint32_t operator "" _dBm (unsigned long long val) { return val; }
+
+
 extern "C" {
 // from board
 #include "stm32l1xx.h"
@@ -452,7 +455,7 @@ struct C_wrappwer {
     Radio* radio {nullptr};
 } c_wrapper;
 
-enum Region_frequency : uint32_t {
+enum class Region_frequency : uint32_t {
     AS923 = 923_MHz,
     AU915 = 915_MHz,
     CN470 = 470_MHz,
@@ -465,16 +468,26 @@ enum Region_frequency : uint32_t {
     RU864 = 864_MHz,
 };
 
+enum class Bandwidth : uint8_t { _125_kHz = 0, _250_kHz, _500_kHz };
+enum class Spreading_factor { _7 = 7, _8, _9, _10, _11, _12 };
+enum class Coding_rate { _4_5 = 1, _4_6, _4_7, _4_8 };
+
 template<class T, size_t n = 0> // n for unique with same T
 struct Construct_wrapper {
     using type = T;
     T value;
     explicit Construct_wrapper (T value) : value{value} {}
 };
-using SPI  = Construct_wrapper<SpiId_t>;
-using MOSI = Construct_wrapper<PinNames>;
-using MISO = Construct_wrapper<PinNames, 1>;
-using CLK  = Construct_wrapper<PinNames, 2>;
+using SPI       = Construct_wrapper<SpiId_t>;
+using MOSI      = Construct_wrapper<PinNames>;
+using MISO      = Construct_wrapper<PinNames, 1>;
+using CLK       = Construct_wrapper<PinNames, 2>;
+using Power     = Construct_wrapper<uint8_t>;
+using Preambula_length   = Construct_wrapper<uint16_t>;
+using Fix_length_payload = Construct_wrapper<bool>;
+using IQ_inversion       = Construct_wrapper<bool, 1>;
+using Symbol_timeout     = Construct_wrapper<uint16_t, 1>;
+
 
 template<class...Args>
 using Callback = Function<void(Args...)>;
@@ -485,8 +498,6 @@ using TX_timeout_callback = Construct_wrapper<Callback<>, 1>;
 using RX_timeout_callback = Construct_wrapper<Callback<>, 2>;
 using RX_error_callback   = Construct_wrapper<Callback<>, 3>;
 
-using Frequency = Construct_wrapper<Region_frequency>;
-
 
 
 struct Radio {
@@ -494,28 +505,57 @@ struct Radio {
     const PinNames mosi;
     const PinNames miso;
     const PinNames clk;
-    Radio_s radio {::Radio};
+    const Region_frequency frequency;
+    const uint8_t power;
+    const Bandwidth bandwidth;
+    const Spreading_factor spreading_factor;
+    const Coding_rate coding_rate;
+    const uint16_t preambula_length;
+    const bool fix_length_payload;
+    const bool iq_inversion;
+    const uint16_t symbol_timeout;
+    
     Callback<> tx_done_callback;
     RX_done_callback::type rx_done_callback;
     Callback<> tx_timeout_callback;
     Callback<> rx_timeout_callback;
     Callback<> rx_error_callback;
 
+    const Radio_s& radio {::Radio};
+
     Radio (
           SPI spi
         , MOSI mosi
         , MISO miso
         , CLK clk
+        , Region_frequency frequency
+        , Power power_
+        , Bandwidth bandwidth
+        , Spreading_factor spreading_factor
+        , Coding_rate coding_rate
+        , Preambula_length preambula_length_
+        , Fix_length_payload fix_length_payload_
+        , IQ_inversion iq_inversion_
+        , Symbol_timeout symbol_timeout_
         , TX_done_callback    tx_done_callback
         , RX_done_callback    rx_done_callback
         , TX_timeout_callback tx_timeout_callback
         , RX_timeout_callback rx_timeout_callback
         , RX_error_callback   rx_error_callback
-        , Frequency frequency
     ) : spi  {spi.value}
       , mosi {mosi.value}
       , miso {miso.value}
       , clk  {clk.value}
+      , frequency {frequency}
+      , power {power_.value}
+      , bandwidth {bandwidth}
+      , spreading_factor {spreading_factor}
+      , coding_rate {coding_rate}
+      , preambula_length {preambula_length_.value}
+      , fix_length_payload {fix_length_payload_.value}
+      , iq_inversion {iq_inversion_.value}
+      , symbol_timeout {symbol_timeout_.value}
+
       , tx_done_callback    {tx_done_callback.value}
       , rx_done_callback    {rx_done_callback.value}
       , tx_timeout_callback {tx_timeout_callback.value}
@@ -525,7 +565,38 @@ struct Radio {
         c_wrapper.radio = this;
         board_init();
         set_callbacks();
-        radio.SetChannel (frequency.value);
+        radio.SetChannel (static_cast<uint32_t>(frequency));
+        radio.SetTxConfig (
+              MODEM_LORA
+            , power
+            , 0
+            , static_cast<uint32_t>(bandwidth)
+            , static_cast<uint32_t>(spreading_factor)
+            , static_cast<uint8_t> (coding_rate)
+            , preambula_length
+            , fix_length_payload
+            , true
+            , 0
+            , 0
+            , iq_inversion
+            , 3000 
+        );
+        radio.SetRxConfig (
+              MODEM_LORA
+            , static_cast<uint32_t>(bandwidth)
+            , static_cast<uint32_t>(spreading_factor)
+            , static_cast<uint8_t> (coding_rate)
+            , 0
+            , preambula_length
+            , symbol_timeout
+            , fix_length_payload
+            , 0
+            , true
+            , 0
+            , 0
+            , iq_inversion
+            , true 
+        );
     }
 
     void board_init() // BoardInitMcu( );
