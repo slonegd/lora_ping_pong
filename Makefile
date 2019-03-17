@@ -97,10 +97,10 @@ MCU = -mcpu=cortex-m3 -mthumb
 
 # compile gcc flags
 CFLAGS  = $(MCU) $(OPT)
-CFLAGS += -Wall -fdata-sections -ffunction-sections -fno-exceptions -fno-strict-volatile-bitfields -fno-threadsafe-statics
+CFLAGS += -Wall -fdata-sections -ffunction-sections -fno-exceptions -fno-strict-volatile-bitfields 
 CFLAGS += -g -gdwarf-2
 
-CPP_FLAGS += $(CFLAGS) -Wno-register -fno-rtti $(CPPSTD) 
+CPP_FLAGS += $(CFLAGS) -Wno-register -fno-rtti $(CPPSTD) -fno-threadsafe-statics
 
 # Generate dependency information
 CFLAGS    += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
@@ -115,7 +115,7 @@ LIBS = -lc -lm -lnosys
 LDFLAGS  = $(MCU) -specs=nano.specs -specs=nosys.specs
 LDFLAGS += -T$(LDSCRIPT) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
-FLAGS_ = $(CPP_FLAGS) -Og -g -mthumb -g2 -fno-builtin -mcpu=cortex-m3 -Wall -Wextra -pedantic -Wno-unused-parameter -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize
+FLAGS_ = -Og -g -mthumb -g2 -fno-builtin -mcpu=cortex-m3 -Wall -Wextra -pedantic -Wno-unused-parameter -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize
 LINKER_FL = -lm -Wl,--gc-sections --specs=nano.specs --specs=nosys.specs -mthumb -g2 -mcpu=cortex-m3 -mabi=aapcs -T${LDSCRIPT} -Wl,-Map=$(BUILD_DIR)/${TARGET}.map
 
 
@@ -143,7 +143,7 @@ vpath %.c $(sort $(dir $(LORA_SOURCES)))
 ALL_OBJECTS = $(OBJECTS) $(LORA_OBJECTS) 
 
 $(BUILD_DIR)/%.o: %.cpp Makefile | $(BUILD_DIR) 
-	$(CC) -c $(FLAGS_) -std=gnu99 $(INCLUDES) $(LORA_INCLUDES) $(LORA_DEFINES)  -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
+	$(CC) -c $(FLAGS_) $(CPP_FLAGS) $(INCLUDES) $(LORA_INCLUDES) $(LORA_DEFINES)  -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 
 # $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
 # 	$(CC) -c $(CFLAGS) $(CPPSTD) $(LORA_DEFINES) -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
