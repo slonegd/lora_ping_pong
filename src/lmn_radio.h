@@ -2,7 +2,8 @@
 
 // c++
 #include "../mculib3/src/function.h"
-// #include <functional>
+#include <cstdint> // move to literals
+#include "../mculib3/src/literals.h"
 
 extern "C" {
 // from board
@@ -451,46 +452,40 @@ struct C_wrappwer {
     Radio* radio {nullptr};
 } c_wrapper;
 
+enum Region_frequency : uint32_t {
+    AS923 = 923_MHz,
+    AU915 = 915_MHz,
+    CN470 = 470_MHz,
+    CN779 = 779_MHz,
+    EU433 = 433_MHz,
+    EU868 = 868_MHz,
+    KR920 = 920_MHz,
+    IN865 = 865_MHz,
+    US915 = 915_MHz,
+    RU864 = 864_MHz,
+};
 
-struct SPI {
-    SpiId_t value;
-    explicit SPI (SpiId_t value) : value{value} {}
+template<class T, size_t n = 0> // n for unique with same T
+struct Construct_wrapper {
+    using type = T;
+    T value;
+    explicit Construct_wrapper (T value) : value{value} {}
 };
-struct MOSI {
-    PinNames value;
-    explicit MOSI (PinNames value) : value{value} {}
-};
-struct MISO {
-    PinNames value;
-    explicit MISO (PinNames value) : value{value} {}
-};
-struct CLK {
-    PinNames value;
-    explicit CLK (PinNames value) : value{value} {}
-};
+using SPI  = Construct_wrapper<SpiId_t>;
+using MOSI = Construct_wrapper<PinNames>;
+using MISO = Construct_wrapper<PinNames, 1>;
+using CLK  = Construct_wrapper<PinNames, 2>;
+
 template<class...Args>
 using Callback = Function<void(Args...)>;
-struct TX_done_callback {
-    Callback<> value;
-    explicit TX_done_callback (Callback<> value) : value{value} {}
-};
-struct RX_done_callback {
-    using F = Callback<uint8_t*,uint16_t,int16_t,int8_t>;
-    F value;
-    explicit RX_done_callback (F value) : value{value} {}
-};
-struct TX_timeout_callback {
-    Callback<> value;
-    explicit TX_timeout_callback (Callback<> value) : value{value} {}
-};
-struct RX_timeout_callback {
-    Callback<> value;
-    explicit RX_timeout_callback (Callback<> value) : value{value} {}
-};
-struct RX_error_callback {
-    Callback<> value;
-    explicit RX_error_callback (Callback<> value) : value{value} {}
-};
+
+using TX_done_callback    = Construct_wrapper<Callback<>>;
+using RX_done_callback    = Construct_wrapper<Callback<uint8_t*,uint16_t,int16_t,int8_t>>;
+using TX_timeout_callback = Construct_wrapper<Callback<>, 1>;
+using RX_timeout_callback = Construct_wrapper<Callback<>, 2>;
+using RX_error_callback   = Construct_wrapper<Callback<>, 3>;
+
+using Frequency = Construct_wrapper<Region_frequency>;
 
 
 
@@ -501,7 +496,7 @@ struct Radio {
     const PinNames clk;
     Radio_s radio {::Radio};
     Callback<> tx_done_callback;
-    RX_done_callback::F rx_done_callback;
+    RX_done_callback::type rx_done_callback;
     Callback<> tx_timeout_callback;
     Callback<> rx_timeout_callback;
     Callback<> rx_error_callback;
@@ -516,6 +511,7 @@ struct Radio {
         , TX_timeout_callback tx_timeout_callback
         , RX_timeout_callback rx_timeout_callback
         , RX_error_callback   rx_error_callback
+        , Frequency frequency
     ) : spi  {spi.value}
       , mosi {mosi.value}
       , miso {miso.value}
@@ -529,6 +525,7 @@ struct Radio {
         c_wrapper.radio = this;
         board_init();
         set_callbacks();
+        radio.SetChannel (frequency.value);
     }
 
     void board_init() // BoardInitMcu( );

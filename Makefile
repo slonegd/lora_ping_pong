@@ -4,8 +4,6 @@ OPT = -Os
 CPPSTD =-std=c++17
 BUILD_DIR = build
 
-LORA_DEFINES  = -DREGION_EU868
-LORA_DEFINES += -DREGION_RU864
 LORA_DEFINES += -DUSE_MODEM_LORA
 LORA_DEFINES += -DLORA
 LORA_DEFINES += -DSX1276MB1LAS
@@ -120,7 +118,7 @@ LDFLAGS  = $(MCU) -specs=nano.specs -specs=nosys.specs
 LDFLAGS += -T$(LDSCRIPT) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 FLAGS_ = $(CPP_FLAGS) -Og -g -mthumb -g2 -fno-builtin -mcpu=cortex-m3 -Wall -Wextra -pedantic -Wno-unused-parameter -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize
-LINKER_FL = -lm -Wl,--gc-sections --specs=nano.specs --specs=nosys.specs -mthumb -g2 -mcpu=cortex-m3 -mabi=aapcs -T${LDSCRIPT} -Wl,-Map=${TARGET}.map
+LINKER_FL = -lm -Wl,--gc-sections --specs=nano.specs --specs=nosys.specs -mthumb -g2 -mcpu=cortex-m3 -mabi=aapcs -T${LDSCRIPT} -Wl,-Map=$(BUILD_DIR)/${TARGET}.map
 
 
 # default action: build all
