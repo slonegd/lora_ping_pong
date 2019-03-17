@@ -487,6 +487,7 @@ using Preambula_length   = Construct_wrapper<uint16_t>;
 using Fix_length_payload = Construct_wrapper<bool>;
 using IQ_inversion       = Construct_wrapper<bool, 1>;
 using Symbol_timeout     = Construct_wrapper<uint16_t, 1>;
+using Timeout            = Construct_wrapper<uint32_t>;
 
 
 template<class...Args>
@@ -500,7 +501,7 @@ using RX_error_callback   = Construct_wrapper<Callback<>, 3>;
 
 
 
-struct Radio {
+class Radio {
     const SpiId_t  spi;
     const PinNames mosi;
     const PinNames miso;
@@ -514,14 +515,15 @@ struct Radio {
     const bool fix_length_payload;
     const bool iq_inversion;
     const uint16_t symbol_timeout;
+    const uint32_t timeout;
     
+    const Radio_s& radio {::Radio};
+public:
     Callback<> tx_done_callback;
     RX_done_callback::type rx_done_callback;
     Callback<> tx_timeout_callback;
     Callback<> rx_timeout_callback;
     Callback<> rx_error_callback;
-
-    const Radio_s& radio {::Radio};
 
     Radio (
           SPI spi
@@ -537,6 +539,8 @@ struct Radio {
         , Fix_length_payload fix_length_payload_
         , IQ_inversion iq_inversion_
         , Symbol_timeout symbol_timeout_
+        , Timeout timeout_
+
         , TX_done_callback    tx_done_callback
         , RX_done_callback    rx_done_callback
         , TX_timeout_callback tx_timeout_callback
@@ -555,6 +559,7 @@ struct Radio {
       , fix_length_payload {fix_length_payload_.value}
       , iq_inversion {iq_inversion_.value}
       , symbol_timeout {symbol_timeout_.value}
+      , timeout {timeout_.value}
 
       , tx_done_callback    {tx_done_callback.value}
       , rx_done_callback    {rx_done_callback.value}
@@ -647,6 +652,9 @@ struct Radio {
             }
         }
     }
+
+    void sleep() {radio.Sleep();}
+    void receive() { radio.Rx (timeout); }
 };
 
 
@@ -655,13 +663,32 @@ struct Radio {
 
 extern "C" {
 void BoardInitMcu() { lmn::c_wrapper.radio->board_init(); }
-void OnTxDone_() { lmn::c_wrapper.radio->tx_done_callback(); }
-void OnRxDone_( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ) {
+void OnTxDone_()
+{
+    lmn::c_wrapper.radio->sleep();
+    lmn::c_wrapper.radio->tx_done_callback();
+}
+void OnRxDone_( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
+{
+    lmn::c_wrapper.radio->sleep();
     lmn::c_wrapper.radio->rx_done_callback(payload,size,rssi,snr);
 }
-void OnTxTimeout_() { lmn::c_wrapper.radio->tx_timeout_callback(); }
-void OnRxTimeout_() { lmn::c_wrapper.radio->rx_timeout_callback(); }
-void OnRxError_() { lmn::c_wrapper.radio->rx_error_callback(); }
+void OnTxTimeout_() 
+{ 
+    lmn::c_wrapper.radio->sleep();
+    lmn::c_wrapper.radio->tx_timeout_callback();
+}
+void OnRxTimeout_() 
+{
+    lmn::c_wrapper.radio->sleep();
+    lmn::c_wrapper.radio->rx_timeout_callback();
+}
+void OnRxError_() 
+{
+    lmn::c_wrapper.radio->sleep();
+    lmn::c_wrapper.radio->rx_error_callback();
+}
+
 RadioEvents_t RadioEvents;
 void set_callbacks()
 {
