@@ -10,8 +10,6 @@
 
 #define TX_OUTPUT_POWER                             14        // dBm
 
-#if defined( USE_MODEM_LORA )
-
 #define LORA_BANDWIDTH                              2         // [0: 125 kHz,
                                                               //  1: 250 kHz,
                                                               //  2: 500 kHz,
@@ -26,31 +24,6 @@
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 
-#elif defined( USE_MODEM_FSK )
-
-#define FSK_FDEV                                    25000     // Hz
-#define FSK_DATARATE                                50000     // bps
-
-#if defined( SX1272MB2DAS ) || defined( SX1276MB1LAS ) || defined( SX1276MB1MAS )
-
-#define FSK_BANDWIDTH                               50000     // Hz >> SSB in sx127x
-#define FSK_AFC_BANDWIDTH                           83333     // Hz
-
-#elif defined( SX1261MBXBAS ) || defined( SX1262MBXCAS ) || defined( SX1262MBXDAS )
-
-#define FSK_BANDWIDTH                               100000    // Hz >> DSB in sx126x
-#define FSK_AFC_BANDWIDTH                           166666    // Hz >> Unused in sx126x
-
-#else
-    #error "Please define a mbed shield in the compiler options."
-#endif
-
-#define FSK_PREAMBLE_LENGTH                         5         // Same for Tx and Rx
-#define FSK_FIX_LENGTH_PAYLOAD_ON                   false
-
-#else
-    #error "Please define a modem in the compiler options."
-#endif
 
 typedef enum
 {
@@ -137,8 +110,6 @@ int main( void )
 
     // Radio.SetChannel( Region_frequency::RU864 );
 
-#if defined( USE_MODEM_LORA )
-
     Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
                                    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
                                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
@@ -149,21 +120,6 @@ int main( void )
                                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
                                    0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
 
-#elif defined( USE_MODEM_FSK )
-
-    Radio.SetTxConfig( MODEM_FSK, TX_OUTPUT_POWER, FSK_FDEV, 0,
-                                  FSK_DATARATE, 0,
-                                  FSK_PREAMBLE_LENGTH, FSK_FIX_LENGTH_PAYLOAD_ON,
-                                  true, 0, 0, 0, 3000 );
-
-    Radio.SetRxConfig( MODEM_FSK, FSK_BANDWIDTH, FSK_DATARATE,
-                                  0, FSK_AFC_BANDWIDTH, FSK_PREAMBLE_LENGTH,
-                                  0, FSK_FIX_LENGTH_PAYLOAD_ON, 0, true,
-                                  0, 0,false, true );
-
-#else
-    #error "Please define a frequency band in the compiler options."
-#endif
 
     Radio.Rx( RX_TIMEOUT_VALUE );
 
