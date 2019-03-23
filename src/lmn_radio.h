@@ -16,7 +16,6 @@ extern "C" {
 #include "adc.h"
 #include "spi.h"
 #include "i2c.h"
-#include "uart.h"
 #include "timer.h"
 #include "board-config.h"
 #include "lpm-board.h"
@@ -29,7 +28,6 @@ extern "C" {
 #elif defined( SX1276MB1LAS ) || defined( SX1276MB1MAS )
     #include "sx1276-board.h"
 #endif
-#include "board.h"
 
 // fom main
 #include <string.h>
@@ -59,7 +57,7 @@ Gpio_t Led2;
 /*
  * MCU objects
  */
-Uart_t Uart2;
+// Uart_t Uart2;
 
 /*!
  * Initializes the unused GPIO to a know status
@@ -373,49 +371,6 @@ void BoardLowPowerHandler( void )
 
     __enable_irq( );
 }
-
-#if !defined ( __CC_ARM )
-
-/*
- * Function to be used by stdout for printf etc
- */
-int _write( int fd, const void *buf, size_t count )
-{
-    while( UartPutBuffer( &Uart2, ( uint8_t* )buf, ( uint16_t )count ) != 0 ){ };
-    return count;
-}
-
-/*
- * Function to be used by stdin for scanf etc
- */
-int _read( int fd, const void *buf, size_t count )
-{
-    size_t bytesRead = 0;
-    while( UartGetBuffer( &Uart2, ( uint8_t* )buf, count, ( uint16_t* )&bytesRead ) != 0 ){ };
-    // Echo back the character
-    while( UartPutBuffer( &Uart2, ( uint8_t* )buf, ( uint16_t )bytesRead ) != 0 ){ };
-    return bytesRead;
-}
-
-#else
-
-// Keil compiler
-int fputc( int c, FILE *stream )
-{
-    while( UartPutChar( &Uart2, ( uint8_t )c ) != 0 );
-    return c;
-}
-
-int fgetc( FILE *stream )
-{
-    uint8_t c = 0;
-    while( UartGetChar( &Uart2, &c ) != 0 );
-    // Echo back the character
-    while( UartPutChar( &Uart2, c ) != 0 );
-    return ( int )c;
-}
-
-#endif
 
 #ifdef USE_FULL_ASSERT
 /*

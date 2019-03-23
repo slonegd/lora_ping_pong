@@ -44,7 +44,7 @@ int main( void )
 
         , lmn::TX_done_callback {[&]{ state = TX; }}
 
-        , lmn::RX_done_callback {[&](uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr){
+        , lmn::RX_done_callback {[&](uint8_t *payload, uint16_t size, int16_t, int8_t){
             is_receive = size > 0;
             std::copy (payload, payload + size, buffer.begin());
             state = RX;

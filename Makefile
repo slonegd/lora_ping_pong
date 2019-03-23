@@ -32,15 +32,12 @@ LORA_SOURCES += LoRaMac-node/src/system/gpio.c
 LORA_SOURCES += LoRaMac-node/src/system/delay.c
 LORA_SOURCES += LoRaMac-node/src/system/timer.c
 LORA_SOURCES += LoRaMac-node/src/system/fifo.c
-LORA_SOURCES += LoRaMac-node/src/system/uart.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/utilities.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/sx1276mb1las-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/cmsis/system_stm32l1xx.c
-# LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/spi-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/gpio-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/delay-board.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/uart-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/rtc-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/lpm-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/sysIrqHandlers.c
@@ -179,7 +176,7 @@ util:
 
 submodule:
 	git submodule update --init
-	cd mculib3/ && git fetch origin && git checkout dvk
+	cd mculib3/ && git fetch && git checkout v1.00
 	cd LoRaMac-node/ && git checkout develop
 
 print-%  : ; @echo $* = $($*)
