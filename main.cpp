@@ -6,7 +6,7 @@
 #include "lmn_radio.h"
 
 extern "C" {
-    #include "delay.h" // delete then
+    // #include "delay.h" // delete then
 }
 
 
@@ -29,10 +29,10 @@ int main( void )
 
     // Target board initialization
     auto radio = lmn::Radio (
-          lmn::SPI                {SPI_1}
-        , lmn::MOSI               {PA_7}
-        , lmn::MISO               {PA_6}
-        , lmn::CLK                {PA_5}
+          lmn::SPI                {lmn::SPI_1}
+        , lmn::MOSI               {lmn::PA_7}
+        , lmn::MISO               {lmn::PA_6}
+        , lmn::CLK                {lmn::PA_5}
         , lmn::Region_frequency   ::RU864
         , lmn::Power              {14_dBm}
         , lmn::Bandwidth          ::_500_kHz
@@ -69,7 +69,7 @@ int main( void )
                 std::string_view message (buffer.data(), pong_message.size());
                 bool right_message = is_master ? message == pong_message : message == ping_message;
                 if (right_message) {
-                    DelayMs (1);
+                    // DelayMs (1);
                     auto& answer = is_master ? ping_message : pong_message;
                     std::copy (answer.begin(), answer.end(), buffer.begin());
                     Radio.Send( (uint8_t*)buffer.data(), buffer.size() );

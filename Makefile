@@ -4,65 +4,19 @@ OPT = -Os
 CPPSTD =-std=c++17
 BUILD_DIR = build
 
-LORA_DEFINES += -DSX1276MB1LAS
-LORA_DEFINES += -DSTM32L152xE
-LORA_DEFINES += -DUSE_HAL_DRIVER
+RADIO = SX1276MB1LAS
+MCU   = STM32L152xE
 
 ######################################
 # source
 ######################################
-CPP_SOURCES += src/main.cpp
-CPP_SOURCES += src/lmn_radio.cpp
+CPP_SOURCES += main.cpp
+LIB_OBJECTS += src/build/lib_lmn.o
 
-ASM_SOURCES = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/startup_stm32l152xe.s
+# ASM_SOURCES = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/startup_stm32l152xe.s
 LDSCRIPT = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/stm32l152xe_flash.ld
 
-CMSIS_PATH = mculib3/STM32F0_files
 INCLUDES += -Isrc
-# C_INCLUDES += -I.
-# C_INCLUDES += -I$(CMSIS_PATH)
-# C_INCLUDES += -I$(CMSIS_PATH)/CMSIS
-# INCLUDES += -Imculib3/src
-# C_INCLUDES += -Imculib3/src/periph
-# C_INCLUDES += -Imculib3/src/bits
-
-
-LORA_SOURCES += LoRaMac-node/src/radio/sx1276/sx1276.c
-LORA_SOURCES += LoRaMac-node/src/system/gpio.c
-LORA_SOURCES += LoRaMac-node/src/system/delay.c
-LORA_SOURCES += LoRaMac-node/src/system/timer.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/utilities.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/sx1276mb1las-board.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/cmsis/system_stm32l1xx.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/spi-board.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/gpio-board.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/delay-board.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/rtc-board.c
-LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/lpm-board.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_gpio.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rcc.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rcc_ex.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_cortex.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_spi.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_spi_ex.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rtc.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rtc_ex.c
-
-
-
-
-
-LORA_INCLUDES += -ILoRaMac-node/src/boards
-LORA_INCLUDES += -ILoRaMac-node/src/system
-LORA_INCLUDES += -ILoRaMac-node/src/radio
-LORA_INCLUDES += -ILoRaMac-node/src/boards/mcu/stm32/cmsis
-LORA_INCLUDES += -ILoRaMac-node/src/boards/NucleoL152/cmsis
-LORA_INCLUDES += -ILoRaMac-node/src/boards/NucleoL152
-LORA_INCLUDES += -ILoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Inc
-LORA_INCLUDES += -ILoRaMac-node/src/mac
-
-# LORA_INCLUDES += -Isrc
 
 
 #######################################
@@ -83,10 +37,10 @@ BIN = $(CP) -O binary -S
 # CFLAGS
 #######################################
 # mcu
-MCU = -mcpu=cortex-m3 -mthumb
+MCU_ = -mcpu=cortex-m3 -mthumb
 
 # compile gcc flags
-CFLAGS  = $(MCU) $(OPT)
+CFLAGS  = $(MCU_) $(OPT)
 CFLAGS += -Wall -fdata-sections -ffunction-sections -fno-exceptions -fno-strict-volatile-bitfields 
 CFLAGS += -g -gdwarf-2
 
@@ -102,7 +56,7 @@ CPP_FLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 # libraries
 LIBS = -lc -lm -lnosys
 
-LDFLAGS  = $(MCU) -specs=nano.specs -specs=nosys.specs
+LDFLAGS  = $(MCU_) -specs=nano.specs -specs=nosys.specs
 LDFLAGS += -T$(LDSCRIPT) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 FLAGS_ = -Og -g -mthumb -g2 -fno-builtin -mcpu=cortex-m3 -Wall -Wextra -pedantic -Wno-unused-parameter -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize
@@ -110,7 +64,7 @@ LINKER_FL = -lm -Wl,--gc-sections --specs=nano.specs --specs=nosys.specs -mthumb
 
 
 # default action: build all
-all: submodule clean \
+all: submodule clean lora \
 $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin 
 
 	
@@ -127,10 +81,7 @@ vpath %.cpp $(sort $(dir $(CPP_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-LORA_OBJECTS += $(addprefix $(BUILD_DIR)/lora/,$(notdir $(LORA_SOURCES:.c=.o)))
-vpath %.c $(sort $(dir $(LORA_SOURCES)))
-
-ALL_OBJECTS = $(OBJECTS) $(LORA_OBJECTS) 
+ALL_OBJECTS = $(OBJECTS) $(LIB_OBJECTS)
 
 $(BUILD_DIR)/%.o: %.cpp Makefile | $(BUILD_DIR) 
 	$(CC) -c $(FLAGS_) $(CPP_FLAGS) $(INCLUDES) $(LORA_INCLUDES) $(LORA_DEFINES)  -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
@@ -157,6 +108,9 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 $(BUILD_DIR):
 	mkdir $@
 	mkdir $@/lora
+
+lora:
+	cd src && make RADIO=$(RADIO) MCU=$(MCU)
 
 clean:
 	-rm -fR .dep $(BUILD_DIR)
