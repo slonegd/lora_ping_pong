@@ -11,12 +11,12 @@ MCU   = STM32L152xE
 # source
 ######################################
 CPP_SOURCES += main.cpp
-LIB_OBJECTS += src/build/lib_lmn.o
+LIB_OBJECTS += lmn/build/lib_lmn.o
 
 # ASM_SOURCES = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/startup_stm32l152xe.s
 LDSCRIPT = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/stm32l152xe_flash.ld
 
-INCLUDES += -Isrc
+INCLUDES += -Ilmn
 
 
 #######################################
@@ -110,7 +110,7 @@ $(BUILD_DIR):
 	mkdir $@/lora
 
 lora:
-	cd src && make RADIO=$(RADIO) MCU=$(MCU)
+	cd lmn && make RADIO=$(RADIO) MCU=$(MCU)
 
 clean:
 	-rm -fR .dep $(BUILD_DIR)
