@@ -11,13 +11,10 @@ constexpr uint32_t operator "" _dBm (unsigned long long val) { return val; }
 extern "C" {
 // from board
 #include "stm32l1xx.h"
-#include "utilities.h"
 #include "gpio.h"
-#include "adc.h"
 #include "spi.h"
-#include "i2c.h"
 #include "timer.h"
-#include "board-config.h"
+#include "delay.h"
 #include "lpm-board.h"
 #include "rtc-board.h"
 
@@ -29,93 +26,12 @@ extern "C" {
     #include "sx1276-board.h"
 #endif
 
-// fom main
-#include <string.h>
-#include "board.h"
-#include "gpio.h"
-#include "delay.h"
-#include "timer.h"
-#include "radio.h"
-
-
-
-
-
-/*!
- * Unique Devices IDs register set ( STM32L152x )
- */
-#define         ID1                                 ( 0x1FF800D0 )
-#define         ID2                                 ( 0x1FF800D4 )
-#define         ID3                                 ( 0x1FF800E4 )
-
 /*!
  * LED GPIO pins objects
  */
 Gpio_t Led1;
 Gpio_t Led2;
 
-/*
- * MCU objects
- */
-// Uart_t Uart2;
-
-/*!
- * Initializes the unused GPIO to a know status
- */
-static void BoardUnusedIoInit( void );
-
-/*!
- * System Clock Configuration
- */
-static void SystemClockConfig( void );
-
-/*!
- * Used to measure and calibrate the system wake-up time from STOP mode
- */
-static void CalibrateSystemWakeupTime( void );
-
-/*!
- * System Clock Re-Configuration when waking up from STOP mode
- */
-static void SystemClockReConfig( void );
-
-/*!
- * Timer used at first boot to calibrate the SystemWakeupTime
- */
-static TimerEvent_t CalibrateSystemWakeupTimeTimer;
-
-/*!
- * Flag to indicate if the MCU is Initialized
- */
-static bool McuInitialized = false;
-
-/*!
- * Flag used to indicate if board is powered from the USB
- */
-static bool UsbIsConnected = false;
-
-/*!
- * UART2 FIFO buffers size
- */
-#define UART2_FIFO_TX_SIZE                                1024
-#define UART2_FIFO_RX_SIZE                                1024
-
-uint8_t Uart2TxBuffer[UART2_FIFO_TX_SIZE];
-uint8_t Uart2RxBuffer[UART2_FIFO_RX_SIZE];
-
-/*!
- * Flag to indicate if the SystemWakeupTime is Calibrated
- */
-static volatile bool SystemWakeupTimeCalibrated = false;
-
-/*!
- * Callback indicating the end of the system wake-up time calibration
- */
-static void OnCalibrateSystemWakeupTimeTimerEvent( void* context )
-{
-    RtcSetMcuWakeUpTime( );
-    SystemWakeupTimeCalibrated = true;
-}
 
 void BoardCriticalSectionBegin( uint32_t *mask )
 {
@@ -126,20 +42,6 @@ void BoardCriticalSectionBegin( uint32_t *mask )
 void BoardCriticalSectionEnd( uint32_t *mask )
 {
     __set_PRIMASK( *mask );
-}
-
-void BoardInitPeriph( void )
-{
-
-}
-
-void BoardResetMcu( void )
-{
-    CRITICAL_SECTION_BEGIN( );
-
-    //Restart system
-    NVIC_SystemReset( );
-
 }
 
 void BoardDeInitMcu( void )
@@ -154,38 +56,6 @@ void BoardDeInitMcu( void )
     SpiDeInit( &SX1276.Spi );
     SX1276IoDeInit( );
 #endif
-}
-
-uint32_t BoardGetRandomSeed( void )
-{
-    return ( ( *( uint32_t* )ID1 ) ^ ( *( uint32_t* )ID2 ) ^ ( *( uint32_t* )ID3 ) );
-}
-
-void BoardGetUniqueId( uint8_t *id )
-{
-    id[7] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 24;
-    id[6] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 16;
-    id[5] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 8;
-    id[4] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) );
-    id[3] = ( ( *( uint32_t* )ID2 ) ) >> 24;
-    id[2] = ( ( *( uint32_t* )ID2 ) ) >> 16;
-    id[1] = ( ( *( uint32_t* )ID2 ) ) >> 8;
-    id[0] = ( ( *( uint32_t* )ID2 ) );
-}
-
-uint16_t BoardBatteryMeasureVolage( void )
-{
-    return 0;
-}
-
-uint32_t BoardGetBatteryVoltage( void )
-{
-    return 0;
-}
-
-uint8_t BoardGetBatteryLevel( void )
-{
-    return 0;
 }
 
 static void BoardUnusedIoInit( void )
@@ -244,20 +114,6 @@ void SystemClockConfig( void )
     HAL_NVIC_SetPriority( SysTick_IRQn, 0, 0 );
 }
 
-void CalibrateSystemWakeupTime( void )
-{
-    if( SystemWakeupTimeCalibrated == false )
-    {
-        TimerInit( &CalibrateSystemWakeupTimeTimer, OnCalibrateSystemWakeupTimeTimerEvent );
-        TimerSetValue( &CalibrateSystemWakeupTimeTimer, 1000 );
-        TimerStart( &CalibrateSystemWakeupTimeTimer );
-        while( SystemWakeupTimeCalibrated == false )
-        {
-
-        }
-    }
-}
-
 void SystemClockReConfig( void )
 {
     __HAL_RCC_PWR_CLK_ENABLE( );
@@ -294,71 +150,6 @@ void SysTick_Handler( void )
     HAL_SYSTICK_IRQHandler( );
 }
 
-uint8_t GetBoardPowerSource( void )
-{
-    if( UsbIsConnected == false )
-    {
-        return BATTERY_POWER;
-    }
-    else
-    {
-        return USB_POWER;
-    }
-}
-
-/**
-  * \brief Enters Low Power Stop Mode
-  *
-  * \note ARM exists the function when waking up
-  */
-void LpmEnterStopMode( void)
-{
-    CRITICAL_SECTION_BEGIN( );
-
-    BoardDeInitMcu( );
-
-    // Disable the Power Voltage Detector
-    HAL_PWR_DisablePVD( );
-
-    // Clear wake up flag
-    SET_BIT( PWR->CR, PWR_CR_CWUF );
-
-    // Enable Ultra low power mode
-    HAL_PWREx_EnableUltraLowPower( );
-
-    // Enable the fast wake up from Ultra low power mode
-    HAL_PWREx_EnableFastWakeUp( );
-
-    CRITICAL_SECTION_END( );
-
-    // Enter Stop Mode
-    HAL_PWR_EnterSTOPMode( PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI );
-}
-
-/*!
- * \brief Exists Low Power Stop Mode
- */
-void LpmExitStopMode( void )
-{
-    // Disable IRQ while the MCU is not running on HSI
-    CRITICAL_SECTION_BEGIN( );
-
-    // Initilizes the peripherals
-    BoardInitMcu( );
-
-    CRITICAL_SECTION_END( );
-}
-
-/*!
- * \brief Enters Low Power Sleep Mode
- *
- * \note ARM exits the function when waking up
- */
-void LpmEnterSleepMode( void)
-{
-    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-}
-
 void BoardLowPowerHandler( void )
 {
     __disable_irq( );
@@ -371,29 +162,6 @@ void BoardLowPowerHandler( void )
 
     __enable_irq( );
 }
-
-#ifdef USE_FULL_ASSERT
-/*
- * Function Name  : assert_failed
- * Description    : Reports the name of the source file and the source line number
- *                  where the assert_param error has occurred.
- * Input          : - file: pointer to the source file name
- *                  - line: assert_param error line source number
- * Output         : None
- * Return         : None
- */
-void assert_failed( uint8_t* file, uint32_t line )
-{
-    /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %lu\r\n", file, line) */
-
-    printf( "Wrong parameters value: file %s on line %lu\r\n", ( const char* )file, line );
-    /* Infinite loop */
-    while( 1 )
-    {
-    }
-}
-#endif
 
 // с++
 void set_callbacks();
@@ -471,6 +239,7 @@ class Radio {
     const bool iq_inversion;
     const uint16_t symbol_timeout;
     const uint32_t timeout;
+    bool is_init {false};
     
     const Radio_s& radio {::Radio};
 public:
@@ -561,29 +330,15 @@ public:
 
     void board_init() // BoardInitMcu( );
     {
-        if( McuInitialized == false )
-        {
+        if (not is_init) {
             HAL_Init( );
-
             // LEDs
             GpioInit( &Led1, LED_1, PIN_OUTPUT, PIN_PUSH_PULL, PIN_NO_PULL, 0 );
             GpioInit( &Led2, LED_2, PIN_OUTPUT, PIN_PUSH_PULL, PIN_NO_PULL, 0 );
-
             SystemClockConfig( );
-
-            UsbIsConnected = true;
-
             RtcInit( );
-
             BoardUnusedIoInit( );
-            if( GetBoardPowerSource( ) == BATTERY_POWER )
-            {
-                // Disables OFF mode - Enables lowest power mode (STOP)
-                LpmSetOffMode( LPM_APPLI_ID, LPM_DISABLE );
-            }
-        }
-        else
-        {
+        } else {
             SystemClockReConfig( );
         }
 
@@ -598,14 +353,7 @@ public:
         SX1276IoInit( );
     #endif
 
-        if( McuInitialized == false )
-        {
-            McuInitialized = true;
-            if( GetBoardPowerSource( ) == BATTERY_POWER )
-            {
-                CalibrateSystemWakeupTime( );
-            }
-        }
+        is_init = true;
     }
 
     void sleep() {radio.Sleep();}

@@ -12,7 +12,7 @@ LORA_DEFINES += -DUSE_HAL_DRIVER
 # source
 ######################################
 CPP_SOURCES += src/main.cpp
-# LORA_SOURCES += src/lmn_radio.c
+# CPP_SOURCES += src/lmn_radio.cpp
 
 ASM_SOURCES = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/startup_stm32l152xe.s
 LDSCRIPT = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/stm32l152xe_flash.ld
@@ -31,7 +31,6 @@ LORA_SOURCES += LoRaMac-node/src/radio/sx1276/sx1276.c
 LORA_SOURCES += LoRaMac-node/src/system/gpio.c
 LORA_SOURCES += LoRaMac-node/src/system/delay.c
 LORA_SOURCES += LoRaMac-node/src/system/timer.c
-LORA_SOURCES += LoRaMac-node/src/system/fifo.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/utilities.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/sx1276mb1las-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/cmsis/system_stm32l1xx.c
@@ -40,11 +39,7 @@ LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/gpio-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/delay-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/rtc-board.c
 LORA_SOURCES += LoRaMac-node/src/boards/NucleoL152/lpm-board.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/sysIrqHandlers.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_gpio.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_uart.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_pwr.c
-LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_pwr_ex.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rcc.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rcc_ex.c
@@ -54,8 +49,6 @@ LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rtc.c
 LORA_SOURCES += LoRaMac-node/src/boards/mcu/stm32/STM32L1xx_HAL_Driver/Src/stm32l1xx_hal_rtc_ex.c
 
-# LORA_SOURCES += LoRaMac-node/src/peripherals/gpio-ioe.c
-# LORA_SOURCES += LoRaMac-node/src/peripherals/sx1509.c
 
 
 
