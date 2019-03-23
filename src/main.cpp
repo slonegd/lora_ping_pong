@@ -5,6 +5,10 @@
 
 #include "lmn_radio.h"
 
+extern "C" {
+    #include "delay.h" // delete then
+}
+
 extern Gpio_t Led1;
 extern Gpio_t Led2;
 
@@ -115,4 +119,7 @@ int main( void )
         }
     } // while (1) {
 }
+
+
+
 

@@ -12,7 +12,7 @@ LORA_DEFINES += -DUSE_HAL_DRIVER
 # source
 ######################################
 CPP_SOURCES += src/main.cpp
-# CPP_SOURCES += src/lmn_radio.cpp
+CPP_SOURCES += src/lmn_radio.cpp
 
 ASM_SOURCES = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/startup_stm32l152xe.s
 LDSCRIPT = LoRaMac-node/src/boards/NucleoL152/cmsis/arm-gcc/stm32l152xe_flash.ld
