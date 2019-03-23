@@ -9,9 +9,11 @@
 constexpr uint32_t operator "" _dBm (unsigned long long val) { return val; }
 
 extern "C" {
-#include "gpio.h"
-#include "spi.h"
-#include "radio.h"
+#include "../LoRaMac-node/src/radio/radio.h"
+#include "../LoRaMac-node/src/boards/pinName-board.h"
+#include "../LoRaMac-node/src/boards/pinName-ioe.h"
+#include "../LoRaMac-node/src/system/gpio.h"
+#include "../LoRaMac-node/src/system/spi.h"
 
 void BoardLowPowerHandler();
 } // extern "C" {

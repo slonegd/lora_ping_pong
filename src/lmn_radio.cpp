@@ -2,6 +2,7 @@
 
 extern "C" {
 #include "stm32l1xx.h"
+#include "spi.h"
 #include "timer.h"
 #include "delay.h"
 #include "lpm-board.h"
@@ -46,8 +47,8 @@ static void rx_error_callback();
 /*!
  * LED GPIO pins objects
  */
-Gpio_t Led1;
-Gpio_t Led2;
+// Gpio_t Led1;
+// Gpio_t Led2;
 } // extern "C" {
 
 
@@ -148,9 +149,6 @@ void Radio::board_init() // BoardInitMcu( );
 {
     if (not is_init) {
         HAL_Init( );
-        // LEDs
-        GpioInit( &Led1, LED_1, PIN_OUTPUT, PIN_PUSH_PULL, PIN_NO_PULL, 0 );
-        GpioInit( &Led2, LED_2, PIN_OUTPUT, PIN_PUSH_PULL, PIN_NO_PULL, 0 );
         SystemClockConfig( );
         RtcInit( );
         BoardUnusedIoInit( );
@@ -159,13 +157,13 @@ void Radio::board_init() // BoardInitMcu( );
     }
 
 #if defined( SX1261MBXBAS ) || defined( SX1262MBXCAS ) || defined( SX1262MBXDAS )
-    SpiInit( &SX126x.Spi, spi, mosi, miso, clk, NC );
+    SpiInit( &SX126x.Spi, ::SpiId_t(spi), ::PinNames(mosi), ::PinNames(miso), ::PinNames(clk), NC );
     SX126xIoInit( );
 #elif defined( SX1272MB2DAS)
-    SpiInit( &SX1272.Spi, spi, mosi, miso, sclk, NC );
+    SpiInit( &SX1272.Spi, ::SpiId_t(spi), ::PinNames(mosi), ::PinNames(miso), ::PinNames(clk), NC );
     SX1272IoInit( );
 #elif defined( SX1276MB1LAS ) || defined( SX1276MB1MAS )
-    SpiInit( &SX1276.Spi, spi, mosi, miso, clk, NC );
+    SpiInit( &SX1276.Spi, ::SpiId_t(spi), ::PinNames(mosi), ::PinNames(miso), ::PinNames(clk), NC );
     SX1276IoInit( );
 #endif
 

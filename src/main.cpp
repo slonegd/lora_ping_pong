@@ -9,8 +9,6 @@ extern "C" {
     #include "delay.h" // delete then
 }
 
-extern Gpio_t Led1;
-extern Gpio_t Led2;
 
 int main( void )
 {
@@ -71,7 +69,6 @@ int main( void )
                 std::string_view message (buffer.data(), pong_message.size());
                 bool right_message = is_master ? message == pong_message : message == ping_message;
                 if (right_message) {
-                    GpioToggle (&Led1);
                     DelayMs (1);
                     auto& answer = is_master ? ping_message : pong_message;
                     std::copy (answer.begin(), answer.end(), buffer.begin());
@@ -84,9 +81,6 @@ int main( void )
             state = LOWPOWER;
             break;
         case TX:
-            // Indicates on a LED that we have sent a PING [Master]
-            // Indicates on a LED that we have sent a PONG [Slave]
-            GpioToggle( &Led2 );
             radio.receive();
             state = LOWPOWER;
             break;
